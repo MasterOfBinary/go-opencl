@@ -4,17 +4,24 @@ package opencl
 // #cgo LDFLAGS: ${SRCDIR}/../external/lib/windows/x64/OpenCL.dll
 // #include <CL/cl.h>
 import "C"
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type clError int32
 
 const (
-	clSuccess         clError = clError(C.CL_SUCCESS)
-	clOutOfHostMemory         = clError(C.CL_OUT_OF_HOST_MEMORY)
+	clSuccess             clError = clError(C.CL_SUCCESS)
+	clDeviceNotFound              = clError(C.CL_DEVICE_NOT_FOUND)
+	clBuildProgramFailure         = clError(C.CL_BUILD_PROGRAM_FAILURE)
+	clOutOfHostMemory             = clError(C.CL_OUT_OF_HOST_MEMORY)
 )
 
 var (
-	OutOfHostMemory = errors.New("Out of host memory")
+	DeviceNotFound      = errors.New("Device not found")
+	BuildProgramFailure = errors.New("Build program failure")
+	OutOfHostMemory     = errors.New("Out of host memory")
 
 	UnexpectedType = errors.New("Unexpected type")
 	UnknownError   = errors.New("Unknown error")
@@ -22,8 +29,10 @@ var (
 
 var (
 	errorMap = map[clError]error{
-		clSuccess:         nil, // Probably never used
-		clOutOfHostMemory: OutOfHostMemory,
+		clSuccess:             nil, // Probably never used
+		clDeviceNotFound:      DeviceNotFound,
+		clBuildProgramFailure: BuildProgramFailure,
+		clOutOfHostMemory:     OutOfHostMemory,
 	}
 )
 
@@ -32,5 +41,6 @@ func clErrorToError(clerr clError) error {
 	if ok {
 		return err
 	}
+	fmt.Println("Error", clerr)
 	return UnknownError
 }

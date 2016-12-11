@@ -4,7 +4,10 @@ package opencl
 // #cgo LDFLAGS: ${SRCDIR}/../external/lib/windows/x64/OpenCL.dll
 // #include <CL/cl.h>
 import "C"
-import "unsafe"
+import (
+	"strings"
+	"unsafe"
+)
 
 type PlatformInfo uint32
 
@@ -22,14 +25,14 @@ type Platform struct {
 }
 
 func GetPlatforms() ([]*Platform, error) {
-	var n C.cl_uint = C.cl_uint(0)
-	errInt := clError(C.clGetPlatformIDs(0, nil, &n))
+	var platformCount C.cl_uint = C.cl_uint(0)
+	errInt := clError(C.clGetPlatformIDs(0, nil, &platformCount))
 	if errInt != clSuccess {
 		return nil, clErrorToError(errInt)
 	}
 
-	platformIDs := make([]C.cl_platform_id, uint32(n))
-	errInt = clError(C.clGetPlatformIDs(n, &platformIDs[0], nil))
+	platformIDs := make([]C.cl_platform_id, uint32(platformCount))
+	errInt = clError(C.clGetPlatformIDs(platformCount, &platformIDs[0], nil))
 	if errInt != clSuccess {
 		return nil, clErrorToError(errInt)
 	}
@@ -59,10 +62,14 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 	// TODO right now just support string pointers
 	switch str := output.(type) {
 	case *string:
-		*str = string(info)
+		*str = strings.TrimRight(string(info), "\x00")
 	default:
 		return UnexpectedType
 	}
 
 	return nil
+}
+
+func (p Platform) GetDevices(deviceType DeviceType) ([]*Device, error) {
+	return getDevices(p.platformID, deviceType)
 }
