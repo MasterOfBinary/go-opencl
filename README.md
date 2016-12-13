@@ -1,12 +1,8 @@
 # Go OpenCL
-This is a very simple OpenCL wrapper for Go. To download, use `go get`:
-
-```
-go get github.com/MasterOfBinary/go-opencl
-```
+This is a very simple OpenCL wrapper for Go. To download, use `go get github.com/MasterOfBinary/go-opencl`.
 
 To run it, make sure you have an SDK from Intel, NVIDIA, or AMD and a compatible
-device. Then run:
+device. Then run with `go run main.go`:
 
 ```
 Platform name: Intel(R) OpenCL, number of CPU devices: 1
