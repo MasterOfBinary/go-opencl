@@ -1,7 +1,7 @@
 package opencl
 
 // #cgo CFLAGS: -I${SRCDIR}/../external/include
-// #cgo LDFLAGS: ${SRCDIR}/../external/lib/windows/x64/OpenCL.dll
+// #cgo LDFLAGS: -lOpenCL
 // #include <CL/cl.h>
 import "C"
 import (

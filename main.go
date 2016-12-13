@@ -7,7 +7,7 @@ import (
 )
 
 const programCode = `
-kernel void main(global uchar* in, global uchar* out)
+kernel void kern(global uchar* in, global uchar* out)
 {
 	size_t i = get_global_id(0);
 	out[i] = in[i] - 3;
@@ -29,7 +29,7 @@ func main() {
 			panic(err)
 		}
 		var devices []*opencl.Device
-		devices, err = platform.GetDevices(opencl.DeviceTypeGPU)
+		devices, err = platform.GetDevices(opencl.DeviceTypeCPU)
 		if err != nil {
 			panic(err)
 		}
@@ -39,6 +39,10 @@ func main() {
 		if len(devices) > 0 && cpuDevice == nil {
 			cpuDevice = devices[0]
 		}
+	}
+
+	if cpuDevice == nil {
+		panic("No device found")
 	}
 
 	var context *opencl.Context
@@ -69,7 +73,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err = program.CreateKernel("main")
+	_, err = program.CreateKernel("kern")
 	if err != nil {
 		panic(err)
 	}
