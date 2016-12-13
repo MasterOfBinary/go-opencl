@@ -69,5 +69,8 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Built successfully")
+	_, err = program.CreateKernel("main")
+	if err != nil {
+		panic(err)
+	}
 }
