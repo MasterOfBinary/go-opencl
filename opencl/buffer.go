@@ -3,6 +3,7 @@ package opencl
 // #cgo LDFLAGS: -lOpenCL
 // #include <CL/cl.h>
 import "C"
+import "unsafe"
 
 type MemFlags uint64
 
@@ -37,4 +38,12 @@ func createBuffer(context *Context, flags []MemFlags, size uint64) (*Buffer, err
 	}
 
 	return &Buffer{buffer}, nil
+}
+
+func (b Buffer) Size() uint64 {
+	return uint64(unsafe.Sizeof(b.buffer))
+}
+
+func (b Buffer) Release() {
+	C.clReleaseMemObject(b.buffer)
 }

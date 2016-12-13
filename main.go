@@ -6,13 +6,17 @@ import (
 	"github.com/MasterOfBinary/go-opencl/opencl"
 )
 
-const programCode = `
-kernel void kern(global uchar* in, global uchar* out)
+const (
+	dataSize = 128
+
+	programCode = `
+kernel void kern(global float* out)
 {
 	size_t i = get_global_id(0);
-	out[i] = in[i] - 3;
+	out[i] = i;
 }
 `
+)
 
 func main() {
 	platforms, err := opencl.GetPlatforms()
@@ -73,8 +77,43 @@ func main() {
 		panic(err)
 	}
 
-	_, err = program.CreateKernel("kern")
+	kernel, err := program.CreateKernel("kern")
 	if err != nil {
 		panic(err)
 	}
+	defer kernel.Release()
+
+	buffer, err := context.CreateBuffer([]opencl.MemFlags{opencl.MemWriteOnly}, dataSize*4)
+	if err != nil {
+		panic(err)
+	}
+	defer buffer.Release()
+
+	err = kernel.SetArg(0, buffer.Size(), buffer)
+	if err != nil {
+		panic(err)
+	}
+
+	err = commandQueue.EnqueueNDRangeKernel(kernel, 1, []uint64{dataSize})
+	if err != nil {
+		panic(err)
+	}
+
+	commandQueue.Flush()
+	commandQueue.Finish()
+
+	data := make([]float32, dataSize)
+
+	err = commandQueue.EnqueueReadBuffer(buffer, true, data)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println()
+	fmt.Println("Output")
+	fmt.Println("======")
+	for _, item := range data {
+		fmt.Printf("%v ", item)
+	}
+	fmt.Println()
 }

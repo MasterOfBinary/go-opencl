@@ -27,7 +27,7 @@ func testBuildHelper(t *testing.T, programCode string, expectValid bool) {
 
 func TestBuild(t *testing.T) {
 	testBuildHelper(t, `
-  kernel void main(global uchar* in, global uchar* out)
+  kernel void kern(global uchar* in, global uchar* out)
   {
     size_t i = get_global_id(0);
     out[i] = in[i] - 3;
@@ -35,7 +35,7 @@ func TestBuild(t *testing.T) {
   `, true)
 
 	testBuildHelper(t, `
-kernel void main(global uchar* in, global uchar* out)
+kernel void kern(global uchar* in, global uchar* out)
 {
   size_t i = get_global_id(0)
   out[i] = in[i] - 3;
