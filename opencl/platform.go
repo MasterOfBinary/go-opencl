@@ -130,9 +130,9 @@ func (p Platform) GetDevices(deviceType DeviceType) ([]*Device, error) {
 }
 
 // GetVersion returns the platform OpenCL version.
-func GetVersion() (*PlatformMajorMinor, error) {
+func (p Platform) GetVersion() (*PlatformMajorMinor, error) {
 	var ver PlatformMajorMinor
-	err := GetInfo(PlatformVersion, &ver)
+	err := p.GetInfo(PlatformVersion, &ver)
 	if err != nil {
 		return nil, err
 	}
