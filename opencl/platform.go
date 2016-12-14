@@ -129,6 +129,17 @@ func (p Platform) GetDevices(deviceType DeviceType) ([]*Device, error) {
 	return getDevices(p.platformID, deviceType)
 }
 
+// GetVersion returns the platform OpenCL version.
+func GetVersion() (*PlatformMajorMinor, error) {
+	var ver PlatformMajorMinor
+	err := GetInfo(PlatformVersion, &ver)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ver, nil
+}
+
 // parseVersion is a helper function to parse an OpenCL version. The version format
 // is given by the specification to be:
 //
