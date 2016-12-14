@@ -1,7 +1,6 @@
 package opencl
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +10,6 @@ func TestGetPlatforms(t *testing.T) {
 	p, err := GetPlatforms()
 	assert.Nil(t, err)
 	assert.NotEmpty(t, p, "number of platforms")
-	fmt.Printf("Number: %v\n", len(p))
 }
 
 func TestGetInfo(t *testing.T) {
@@ -26,4 +24,12 @@ func TestGetInfo(t *testing.T) {
 
 	err = p[0].GetInfo(PlatformName, name)
 	assert.NotNil(t, err)
+
+	var ver PlatformMajorMinor
+	err = p[0].GetInfo(PlatformVersion, &ver)
+	assert.Nil(t, err)
+
+	var exts []string
+	err = p[0].GetInfo(PlatformExtensions, &exts)
+	assert.Nil(t, err)
 }

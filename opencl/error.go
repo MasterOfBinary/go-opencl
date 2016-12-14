@@ -23,8 +23,9 @@ var (
 	BuildProgramFailure = errors.New("Build program failure")
 	OutOfHostMemory     = errors.New("Out of host memory")
 
-	UnexpectedType = errors.New("Unexpected type")
-	UnknownError   = errors.New("Unknown error")
+	UnexpectedType      = errors.New("Unexpected type")
+	ErrorParsingVersion = errors.New("Error parsing OpenCL version")
+	UnknownError        = errors.New("Unknown error")
 )
 
 var (
