@@ -6,10 +6,10 @@ import "C"
 
 type Context struct {
 	context C.cl_context
-	device  *Device
+	device  Device
 }
 
-func createContext(device *Device) (*Context, error) {
+func createContext(device Device) (*Context, error) {
 	// TODO add more functionality. Super simple context creation right now
 	var errInt clError
 	ctx := C.clCreateContext(

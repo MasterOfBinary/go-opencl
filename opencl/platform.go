@@ -32,11 +32,11 @@ type PlatformMajorMinor struct {
 // Platform is a structure for an OpenCL platform.
 type Platform struct {
 	platformID C.cl_platform_id
-	version    PlatformMajorMinor
+	version    *PlatformMajorMinor
 }
 
 // GetPlatforms returns a slice containing all platforms available.
-func GetPlatforms() ([]Platform, error) {
+func GetPlatforms() ([]*Platform, error) {
 	var platformCount C.cl_uint = C.cl_uint(0)
 	errInt := clError(C.clGetPlatformIDs(0, nil, &platformCount))
 	if errInt != clSuccess {
@@ -49,12 +49,16 @@ func GetPlatforms() ([]Platform, error) {
 		return nil, clErrorToError(errInt)
 	}
 
-	platforms := make([]Platform, len(platformIDs))
+	platforms := make([]*Platform, len(platformIDs))
 	for i, platformID := range platformIDs {
-		platforms[i] = Platform{platformID}
+		platforms[i] = &Platform{
+			platformID: platformID,
+		}
 
-		ver, _ := platforms[i].GetVersion()
-		platforms[i].version = *ver
+		ver, err := platforms[i].GetVersion()
+		if err == nil {
+			platforms[i].version = ver
+		}
 	}
 
 	return platforms, nil
@@ -110,10 +114,11 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 
 		ver, errVer := parseVersion(outputString)
 		if errVer != nil {
-			return errors.New("Unable to parse platform info to *PlatformMajorMinor, err: " + errVer)
+			return errors.New("Unable to parse platform info to *PlatformMajorMinor, err: " + errVer.Error())
 		}
 
 		*t = *ver
+
 	case *[]string:
 		if name != PlatformExtensions {
 			return UnexpectedType
@@ -121,6 +126,7 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 
 		elems := strings.Split(outputString, " ")
 		*t = elems
+
 	default:
 		return UnexpectedType
 	}
@@ -130,17 +136,19 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 
 // GetDevices returns a slice of devices of type deviceType for a Platform. If there are
 // no such devices it returns an empty slice.
-func (p Platform) GetDevices(deviceType DeviceType) ([]*Device, error) {
-	return getDevices(p.platformID, deviceType)
+func (p Platform) GetDevices(deviceType DeviceType) ([]Device, error) {
+	return getDevices(p, deviceType)
 }
 
 // GetVersion returns the platform OpenCL version.
-func (p Platform) GetVersion() (*PlatformMajorMinor, error) {
+func (p *Platform) GetVersion() (*PlatformMajorMinor, error) {
 	var ver PlatformMajorMinor
 	err := p.GetInfo(PlatformVersion, &ver)
 	if err != nil {
 		return nil, err
 	}
+
+	p.version = &ver
 
 	return &ver, nil
 }

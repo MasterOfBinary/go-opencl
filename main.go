@@ -32,7 +32,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var devices []*opencl.Device
+		var devices []opencl.Device
 		devices, err = platform.GetDevices(opencl.DeviceTypeCPU)
 		if err != nil {
 			panic(err)
@@ -41,7 +41,7 @@ func main() {
 
 		// Use the first device
 		if len(devices) > 0 && cpuDevice == nil {
-			cpuDevice = devices[0]
+			cpuDevice = &devices[0]
 		}
 	}
 

@@ -18,8 +18,6 @@ const (
 	clBuildProgramFailure         = clError(C.CL_BUILD_PROGRAM_FAILURE)
 	clOutOfResources              = clError(C.CL_OUT_OF_RESOURCES)
 	clOutOfHostMemory             = clError(C.CL_OUT_OF_HOST_MEMORY)
-
-	clPlatformNotFoundKHR = clError(C.CL_PLATFORM_NOT_FOUND_KHR)
 )
 
 var (
@@ -29,8 +27,6 @@ var (
 	BuildProgramFailure = errors.New("Build program failure")
 	OutOfResources      = errors.New("Out of resources")
 	OutOfHostMemory     = errors.New("Out of host memory")
-
-	PlatformNotFoundKHR = errors.New("No platforms found")
 
 	UnexpectedType      = errors.New("Unexpected type")
 	ErrorParsingVersion = errors.New("Error parsing OpenCL version")
@@ -46,8 +42,6 @@ var (
 		clBuildProgramFailure: BuildProgramFailure,
 		clOutOfResources:      OutOfResources,
 		clOutOfHostMemory:     OutOfHostMemory,
-
-		clPlatformNotFoundKHR: PlatformNotFoundKHR,
 	}
 )
 

@@ -27,16 +27,13 @@ func TestGetDeviceInfo(t *testing.T) {
 
 	var deviceAvailable bool
 	err = d[0].GetInfo(DeviceAvailable, &deviceAvailable)
-	assert.NotNil(t, err)
-	assert.True(t, deviceAvailable, "device available")
+	assert.Nil(t, err)
 
 	var bik string
 	err = d[0].GetInfo(DeviceBuiltInKernels, &bik)
-	assert.NotNil(t, err)
-	assert.NotEmpty(t, bik, "device built in kernels string")
+	assert.Nil(t, err)
 
 	var bik2 []string
 	err = d[0].GetInfo(DeviceBuiltInKernels, &bik2)
-	assert.NotNil(t, err)
-	assert.NotEmpty(t, bik2, "device built in kernels []string")
+	assert.Nil(t, err)
 }

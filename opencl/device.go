@@ -4,9 +4,7 @@ package opencl
 // #include <CL/cl.h>
 import "C"
 import (
-	"errors"
 	"reflect"
-	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -101,6 +99,84 @@ func (d Device) CreateContext() (*Context, error) {
 // the extensions will be a semicolon-separated list as specified by the OpenCL
 // reference for clGetDeviceInfo.
 func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
+	// Output interface needs to be a pointer to the expected type
+	v := reflect.ValueOf(output)
+	if v.Kind() != reflect.Ptr {
+		return UnexpectedType
+	}
+
+	elem := v.Elem()
+
+	validType := false
+	for _, curType := range deviceInfoTypes[name] {
+		if elem.Type() == reflect.TypeOf(curType) {
+			validType = true
+			break
+		}
+	}
+
+	if !validType {
+		return UnexpectedType
+	}
+
+	var outputString string
+
+	switch t := output.(type) {
+	case *string:
+		err := d.getInfoStr(name, &outputString)
+		if err != nil {
+			return err
+		}
+		*t = outputString
+	case *[]string:
+		err := d.getInfoStr(name, &outputString)
+		if err != nil {
+			return err
+		}
+		if name == DeviceBuiltInKernels {
+			elems := strings.Split(outputString, ";")
+			*t = elems
+		}
+	case *uint32, *bool:
+		return d.getInfoNum(name, output)
+	}
+
+	return nil
+}
+
+func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
+	var errInt clError
+	switch t := output.(type) {
+	case *uint32:
+		var u uint32
+		errInt = clError(C.clGetDeviceInfo(
+			d.deviceID,
+			C.cl_device_info(name),
+			4,
+			unsafe.Pointer(&u),
+			nil,
+		))
+		*t = u
+	case *bool:
+		var u uint32
+		errInt = clError(C.clGetDeviceInfo(
+			d.deviceID,
+			C.cl_device_info(name),
+			4,
+			unsafe.Pointer(&u),
+			nil,
+		))
+		*t = u == C.CL_TRUE
+	}
+
+	if errInt != clSuccess {
+		return clErrorToError(errInt)
+	}
+
+	return nil
+}
+
+func (d Device) getInfoStr(name DeviceInfo, output interface{}) error {
 	var size uint64
 	errInt := clError(C.clGetDeviceInfo(
 		d.deviceID,
@@ -113,8 +189,14 @@ func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
 		return clErrorToError(errInt)
 	}
 
+	if size == 0 {
+		outputStr, _ := output.(*string)
+		*outputStr = ""
+		return nil
+	}
+
 	info := make([]byte, size)
-	errInt = clError(C.clGetPlatformInfo(
+	errInt = clError(C.clGetDeviceInfo(
 		d.deviceID,
 		C.cl_device_info(name),
 		C.size_t(size),
@@ -125,47 +207,8 @@ func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
 		return clErrorToError(errInt)
 	}
 
-	expectedTypes, ok := deviceInfoTypes[name]
-	if !ok {
-		return UnexpectedType
-	}
-
-	// Output interface needs to be a pointer to the expected type
-	v := reflect.ValueOf(output)
-	if v.Kind() != reflect.Ptr {
-		return UnexpectedType
-	}
-
-	elem := v.Elem()
-
-	validType := false
-	for _, curType := range expectedTypes {
-		if elem.Type() == reflect.TypeOf(curType) {
-			validType = true
-			break
-		}
-	}
-
-	if !validType {
-		return UnexpectedType
-	}
-
-	switch t := output.(type) {
-	case *string:
-		outputString := zeroTerminatedByteSliceToString(info)
-		*t = outputString
-	case *uint32:
-		*t = *(*uint32)(unsafe.Pointer(&info))
-	case *bool:
-		u := *(*C.cl_bool)(unsafe.Pointer(&info))
-		*t = u == C.CL_TRUE
-	case *[]string:
-		if name == DeviceBuiltInKernels {
-			outputString := zeroTerminatedByteSliceToString(info)
-			elems := strings.Split(outputString, ";")
-			*t = elems
-		}
-	}
+	outputString, _ := output.(*string)
+	*outputString = zeroTerminatedByteSliceToString(info)
 
 	return nil
 }
