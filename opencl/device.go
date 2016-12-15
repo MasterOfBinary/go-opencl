@@ -144,6 +144,8 @@ func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
 	return nil
 }
 
+// getInfoNum returns numeric device info. This includes all types of which the size is known
+// beforehand, such as cl_uint or cl_bool.
 func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
 	var errInt clError
 	switch t := output.(type) {
@@ -178,7 +180,11 @@ func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
 	return nil
 }
 
+// getInfoStr returns string device info. For strings, the size is not known beforehand and has to be queried
+// before getting the info.
 func (d Device) getInfoStr(name DeviceInfo, output interface{}) error {
+	outputStr, _ := output.(*string)
+
 	var size uint64
 	errInt := clError(C.clGetDeviceInfo(
 		d.deviceID,
@@ -192,7 +198,6 @@ func (d Device) getInfoStr(name DeviceInfo, output interface{}) error {
 	}
 
 	if size == 0 {
-		outputStr, _ := output.(*string)
 		*outputStr = ""
 		return nil
 	}
@@ -209,8 +214,7 @@ func (d Device) getInfoStr(name DeviceInfo, output interface{}) error {
 		return clErrorToError(errInt)
 	}
 
-	outputString, _ := output.(*string)
-	*outputString = zeroTerminatedByteSliceToString(info)
+	*outputStr = zeroTerminatedByteSliceToString(info)
 
 	return nil
 }
