@@ -4,6 +4,7 @@ package opencl
 // #include <CL/cl.h>
 import "C"
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -12,7 +13,7 @@ import (
 // PlatformInfo is a type of info that can be retrieved by Platform.GetInfo.
 type PlatformInfo uint32
 
-// All constants of type PlatformInfo.
+// PlatformInfo constants.
 const (
 	PlatformProfile    PlatformInfo = PlatformInfo(C.CL_PLATFORM_PROFILE)
 	PlatformVersion                 = PlatformInfo(C.CL_PLATFORM_VERSION)
@@ -31,9 +32,10 @@ type PlatformMajorMinor struct {
 // Platform is a structure for an OpenCL platform.
 type Platform struct {
 	platformID C.cl_platform_id
+	version    PlatformMajorMinor
 }
 
-// GetPlatforms retrieves a slice containing all platforms available.
+// GetPlatforms returns a slice containing all platforms available.
 func GetPlatforms() ([]Platform, error) {
 	var platformCount C.cl_uint = C.cl_uint(0)
 	errInt := clError(C.clGetPlatformIDs(0, nil, &platformCount))
@@ -50,6 +52,9 @@ func GetPlatforms() ([]Platform, error) {
 	platforms := make([]Platform, len(platformIDs))
 	for i, platformID := range platformIDs {
 		platforms[i] = Platform{platformID}
+
+		ver, _ := platforms[i].GetVersion()
+		platforms[i].version = *ver
 	}
 
 	return platforms, nil
@@ -93,7 +98,7 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 		return clErrorToError(errInt)
 	}
 
-	outputString := strings.TrimRight(string(info), "\x00")
+	outputString := zeroTerminatedByteSliceToString(info)
 
 	switch t := output.(type) {
 	case *string:
@@ -105,7 +110,7 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 
 		ver, errVer := parseVersion(outputString)
 		if errVer != nil {
-			return errVer
+			return errors.New("Unable to parse platform info to *PlatformMajorMinor, err: " + errVer)
 		}
 
 		*t = *ver
@@ -123,8 +128,8 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 	return nil
 }
 
-// GetDevices retrieves a slice containing all devices that support the
-// Platform.
+// GetDevices returns a slice of devices of type deviceType for a Platform. If there are
+// no such devices it returns an empty slice.
 func (p Platform) GetDevices(deviceType DeviceType) ([]*Device, error) {
 	return getDevices(p.platformID, deviceType)
 }

@@ -13,16 +13,30 @@ func TestGetDevices(t *testing.T) {
 	assert.NotEmpty(t, d, "number of devices")
 }
 
-/*func TestGetInfo(t *testing.T) {
-	p, err := GetPlatforms()
-	assert.Nil(t, err)
-	assert.NotEmpty(t, p, "number of platforms")
+func TestGetDeviceInfo(t *testing.T) {
+	p, _ := GetPlatforms()
+	d, _ := p[0].GetDevices(DeviceTypeAll)
 
-	var name string
-	err = p[0].GetInfo(PlatformName, &name)
+	var addressBits uint32
+	err := d[0].GetInfo(DeviceAddressBits, &addressBits)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, name, "platform name")
+	assert.NotZero(t, addressBits, "device address bits")
 
-	err = p[0].GetInfo(PlatformName, name)
+	err = d[0].GetInfo(DeviceAddressBits, addressBits)
 	assert.NotNil(t, err)
-}*/
+
+	var deviceAvailable bool
+	err = d[0].GetInfo(DeviceAvailable, &deviceAvailable)
+	assert.NotNil(t, err)
+	assert.True(t, deviceAvailable, "device available")
+
+	var bik string
+	err = d[0].GetInfo(DeviceBuiltInKernels, &bik)
+	assert.NotNil(t, err)
+	assert.NotEmpty(t, bik, "device built in kernels string")
+
+	var bik2 []string
+	err = d[0].GetInfo(DeviceBuiltInKernels, &bik2)
+	assert.NotNil(t, err)
+	assert.NotEmpty(t, bik2, "device built in kernels []string")
+}
