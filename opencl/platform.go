@@ -90,6 +90,12 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 		return clErrorToError(errInt)
 	}
 
+	if size == 0 {
+		outputStr, _ := output.(*string)
+		*outputStr = ""
+		return nil
+	}
+
 	info := make([]byte, size)
 	errInt = clError(C.clGetPlatformInfo(
 		p.platformID,

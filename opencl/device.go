@@ -123,20 +123,20 @@ func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
 
 	switch t := output.(type) {
 	case *string:
-		err := d.getInfoStr(name, &outputString)
-		if err != nil {
+		if err := d.getInfoStr(name, &outputString); err != nil {
 			return err
 		}
 		*t = outputString
+
 	case *[]string:
-		err := d.getInfoStr(name, &outputString)
-		if err != nil {
+		if err := d.getInfoStr(name, &outputString); err != nil {
 			return err
 		}
 		if name == DeviceBuiltInKernels {
 			elems := strings.Split(outputString, ";")
 			*t = elems
 		}
+
 	case *uint32, *bool:
 		return d.getInfoNum(name, output)
 	}
@@ -157,6 +157,7 @@ func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
 			nil,
 		))
 		*t = u
+
 	case *bool:
 		var u uint32
 		errInt = clError(C.clGetDeviceInfo(
@@ -167,6 +168,7 @@ func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
 			nil,
 		))
 		*t = u == C.CL_TRUE
+
 	}
 
 	if errInt != clSuccess {
