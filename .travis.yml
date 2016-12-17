@@ -1,8 +1,20 @@
 language: go
 go:
- - 1.7.4
- - 1.7.3
- - 1.7.1
+ - 1.7.x
+ - 1.7
+ - 1.6
+ - master
+
+before_install:
+ - wget http://registrationcenter-download.intel.com/akdlm/irc_nas/9019/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz
+ - tar -xvf opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz
+ - git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader.git
+
+install:
+ - go get github.com/stretchr/testify/assert
+ - cd OpenCL-ICD-Loader
+ - make
+ - cd opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25
 
 script:
  - go test -v ./...
