@@ -12,6 +12,7 @@ install:
 
 script:
  - go test -v ./...
+ - go run main.go
 
 notifications:
   email: false
