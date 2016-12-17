@@ -9,14 +9,13 @@ import (
 
 type CommandQueue struct {
 	commandQueue C.cl_command_queue
-	context      *Context
 }
 
-func createCommandQueue(context *Context) (*CommandQueue, error) {
+func createCommandQueue(context Context, device Device) (*CommandQueue, error) {
 	var errInt clError
 	queue := C.clCreateCommandQueue(
 		context.context,
-		context.device.deviceID,
+		device.deviceID,
 		0,
 		(*C.cl_int)(&errInt),
 	)
@@ -24,7 +23,7 @@ func createCommandQueue(context *Context) (*CommandQueue, error) {
 		return nil, clErrorToError(errInt)
 	}
 
-	return &CommandQueue{queue, context}, nil
+	return &CommandQueue{queue}, nil
 }
 
 func (c CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, workDim uint32, globalWorkSize []uint64) error {

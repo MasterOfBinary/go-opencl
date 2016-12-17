@@ -25,7 +25,7 @@ func TestGetInfo(t *testing.T) {
 	err = p[0].GetInfo(PlatformName, name)
 	assert.NotNil(t, err)
 
-	var ver PlatformMajorMinor
+	var ver MajorMinor
 	err = p[0].GetInfo(PlatformVersion, &ver)
 	assert.Nil(t, err)
 

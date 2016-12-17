@@ -1,18 +1,15 @@
 package opencl
 
-// #if __APPLE__
-//   #include <OpenCL/opencl.h>
-// #else
-//   #include <CL/cl.h>
-// #endif
+// #include "opencl.h"
 import "C"
 
 type Context struct {
 	context C.cl_context
-	device  Device
 }
 
-func createContext(device Device) (*Context, error) {
+func createContext(device Device) (Context, error) {
+	var emptyContext Context
+
 	// TODO add more functionality. Super simple context creation right now
 	var errInt clError
 	ctx := C.clCreateContext(
@@ -24,24 +21,24 @@ func createContext(device Device) (*Context, error) {
 		(*C.cl_int)(&errInt),
 	)
 	if errInt != clSuccess {
-		return nil, clErrorToError(errInt)
+		return emptyContext, clErrorToError(errInt)
 	}
 
-	return &Context{ctx, device}, nil
+	return Context{ctx}, nil
 }
 
-func (c *Context) CreateCommandQueue() (*CommandQueue, error) {
-	return createCommandQueue(c)
+func (c Context) CreateCommandQueue(device Device) (*CommandQueue, error) {
+	return createCommandQueue(c, device)
 }
 
-func (c *Context) CreateProgramWithSource(programCode string) (*Program, error) {
+func (c Context) CreateProgramWithSource(programCode string) (*Program, error) {
 	return createProgramWithSource(c, programCode)
 }
 
-func (c *Context) CreateBuffer(memFlags []MemFlags, size uint64) (*Buffer, error) {
+func (c Context) CreateBuffer(memFlags []MemFlags, size uint64) (*Buffer, error) {
 	return createBuffer(c, memFlags, size)
 }
 
-func (c *Context) Release() {
+func (c Context) Release() {
 	C.clReleaseContext(c.context)
 }

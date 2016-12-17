@@ -28,7 +28,7 @@ var (
 	OutOfHostMemory     = errors.New("Out of host memory")
 
 	UnexpectedType      = errors.New("Unexpected type")
-	ErrorParsingVersion = errors.New("Error parsing OpenCL version")
+	ErrorParsingVersion = errors.New("Error parsing version")
 	UnknownError        = errors.New("Unknown error")
 )
 

@@ -9,10 +9,9 @@ import (
 
 type Program struct {
 	program C.cl_program
-	context *Context
 }
 
-func createProgramWithSource(context *Context, programCode string) (*Program, error) {
+func createProgramWithSource(context Context, programCode string) (*Program, error) {
 	cs := C.CString(programCode)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -28,10 +27,10 @@ func createProgramWithSource(context *Context, programCode string) (*Program, er
 		return nil, clErrorToError(errInt)
 	}
 
-	return &Program{program, context}, nil
+	return &Program{program}, nil
 }
 
-func (p Program) Build(log *string) error {
+func (p Program) Build(device Device, log *string) error {
 	emptyString := C.CString("\x00")
 	defer C.free(unsafe.Pointer(emptyString))
 
@@ -56,7 +55,7 @@ func (p Program) Build(log *string) error {
 	compilerLog := make([]byte, size)
 	C.clGetProgramBuildInfo(
 		p.program,
-		p.context.device.deviceID,
+		device.deviceID,
 		C.CL_PROGRAM_BUILD_LOG,
 		C.size_t(size),
 		unsafe.Pointer(&compilerLog[0]),

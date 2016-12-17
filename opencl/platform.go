@@ -3,8 +3,6 @@ package opencl
 // #include "opencl.h"
 import "C"
 import (
-	"errors"
-	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -21,26 +19,14 @@ const (
 	PlatformExtensions              = PlatformInfo(C.CL_PLATFORM_EXTENSIONS)
 )
 
-// PlatformMajorMinor contains the major and minor versions of an OpenCL
-// platform.
-type PlatformMajorMinor struct {
-	Major uint8
-	Minor uint8
-}
-
-// String converts a PlatformMajorMinor to a string in the format <major>.<minor>.
-func (p PlatformMajorMinor) String() string {
-	return strconv.FormatUint(uint64(p.Major), 10) + "." + strconv.FormatUint(uint64(p.Minor), 10)
-}
-
 // Platform is a structure for an OpenCL platform.
 type Platform struct {
 	platformID C.cl_platform_id
-	version    PlatformMajorMinor
+	version    MajorMinor
 }
 
 // GetPlatforms returns a slice containing all platforms available.
-func GetPlatforms() ([]*Platform, error) {
+func GetPlatforms() ([]Platform, error) {
 	var platformCount C.cl_uint = C.cl_uint(0)
 	errInt := clError(C.clGetPlatformIDs(0, nil, &platformCount))
 	if errInt != clSuccess {
@@ -53,9 +39,9 @@ func GetPlatforms() ([]*Platform, error) {
 		return nil, clErrorToError(errInt)
 	}
 
-	platforms := make([]*Platform, len(platformIDs))
+	platforms := make([]Platform, len(platformIDs))
 	for i, platformID := range platformIDs {
-		platforms[i] = &Platform{
+		platforms[i] = Platform{
 			platformID: platformID,
 		}
 
@@ -116,17 +102,17 @@ func (p Platform) GetInfo(name PlatformInfo, output interface{}) error {
 	switch t := output.(type) {
 	case *string:
 		*t = outputString
-	case *PlatformMajorMinor:
+	case *MajorMinor:
 		if name != PlatformVersion {
 			return UnexpectedType
 		}
 
 		ver, errVer := parseVersion(outputString)
 		if errVer != nil {
-			return errors.New("Unable to parse platform info to *PlatformMajorMinor, err: " + errVer.Error())
+			return errVer
 		}
 
-		*t = *ver
+		*t = ver
 
 	case *[]string:
 		if name != PlatformExtensions {
@@ -150,7 +136,7 @@ func (p Platform) GetDevices(deviceType DeviceType) ([]Device, error) {
 }
 
 // GetVersion returns the platform OpenCL version.
-func (p Platform) GetVersion() PlatformMajorMinor {
+func (p Platform) GetVersion() MajorMinor {
 	return p.version
 }
 
@@ -160,28 +146,11 @@ func (p Platform) GetVersion() PlatformMajorMinor {
 // OpenCL<space><major_version.minor_version><space><platform-specific information>
 //
 // The only part that concerns us here is the major/minor version combination.
-func parseVersion(ver string) (*PlatformMajorMinor, error) {
+func parseVersion(ver string) (MajorMinor, error) {
 	elems := strings.SplitN(ver, " ", 3)
 	if len(elems) < 3 || elems[0] != "OpenCL" {
-		return nil, ErrorParsingVersion
+		return MajorMinor{}, ErrorParsingVersion
 	}
 
-	verElems := strings.Split(elems[1], ".")
-	if len(verElems) != 2 {
-		return nil, ErrorParsingVersion
-	}
-
-	maj, errMaj := strconv.ParseUint(verElems[0], 10, 64)
-	if errMaj != nil {
-		return nil, ErrorParsingVersion
-	}
-	min, errMin := strconv.ParseUint(verElems[1], 10, 64)
-	if errMin != nil {
-		return nil, ErrorParsingVersion
-	}
-
-	return &PlatformMajorMinor{
-		Major: uint8(maj),
-		Minor: uint8(min),
-	}, nil
+	return ParseMajorMinor(elems[1])
 }

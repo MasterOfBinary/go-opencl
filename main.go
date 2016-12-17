@@ -3,10 +3,14 @@ package main
 import (
 	"fmt"
 
+	"strings"
+
 	"github.com/MasterOfBinary/go-opencl/opencl"
 )
 
 const (
+	deviceType = opencl.DeviceTypeAll
+
 	dataSize = 128
 
 	programCode = `
@@ -18,50 +22,88 @@ kernel void kern(global float* out)
 `
 )
 
+func printHeader(name string) {
+	fmt.Println(strings.ToUpper(name))
+	for _ = range name {
+		fmt.Print("=")
+	}
+	fmt.Println()
+}
+
+func printInfo(platform opencl.Platform, device opencl.Device) {
+	var platformName string
+	err := platform.GetInfo(opencl.PlatformName, &platformName)
+	if err != nil {
+		panic(err)
+	}
+
+	var vendor string
+	err = device.GetInfo(opencl.DeviceVendor, &vendor)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println()
+	printHeader("Using")
+	fmt.Println("Platform:", platformName)
+	fmt.Println("Vendor:  ", vendor)
+}
+
 func main() {
 	platforms, err := opencl.GetPlatforms()
 	if err != nil {
 		panic(err)
 	}
 
-	var cpuDevice *opencl.Device
+	printHeader("Platforms")
 
+	foundDevice := false
+
+	var platform opencl.Platform
+	var device opencl.Device
 	var name string
-	for _, platform := range platforms {
-		err = platform.GetInfo(opencl.PlatformName, &name)
+	for _, curPlatform := range platforms {
+		err = curPlatform.GetInfo(opencl.PlatformName, &name)
 		if err != nil {
 			panic(err)
 		}
 
 		var devices []opencl.Device
-		devices, err = platform.GetDevices(opencl.DeviceTypeAll)
+		devices, err = curPlatform.GetDevices(deviceType)
 		if err != nil {
 			panic(err)
 		}
 
-		version := platform.GetVersion()
-
-		fmt.Printf("Platform name: %v, number of devices: %v, version: %v\n", name, len(devices), version)
-
-		// Use the first device
-		if len(devices) > 0 && cpuDevice == nil {
-			cpuDevice = &devices[0]
+		// Use the first available device
+		if len(devices) > 0 && !foundDevice {
+			var available bool
+			err = devices[0].GetInfo(opencl.DeviceAvailable, &available)
+			if err == nil && available {
+				platform = curPlatform
+				device = devices[0]
+				foundDevice = true
+			}
 		}
+
+		version := curPlatform.GetVersion()
+		fmt.Printf("Name: %v, devices: %v, version: %v\n", name, len(devices), version)
 	}
 
-	if cpuDevice == nil {
+	if !foundDevice {
 		panic("No device found")
 	}
 
-	var context *opencl.Context
-	context, err = cpuDevice.CreateContext()
+	printInfo(platform, device)
+
+	var context opencl.Context
+	context, err = device.CreateContext()
 	if err != nil {
 		panic(err)
 	}
 	defer context.Release()
 
 	var commandQueue *opencl.CommandQueue
-	commandQueue, err = context.CreateCommandQueue()
+	commandQueue, err = context.CreateCommandQueue(device)
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +117,7 @@ func main() {
 	defer program.Release()
 
 	var log string
-	err = program.Build(&log)
+	err = program.Build(device, &log)
 	if err != nil {
 		fmt.Println(log)
 		panic(err)
@@ -114,8 +156,7 @@ func main() {
 	}
 
 	fmt.Println()
-	fmt.Println("Output")
-	fmt.Println("======")
+	printHeader("Output")
 	for _, item := range data {
 		fmt.Printf("%v ", item)
 	}

@@ -30,6 +30,9 @@ const (
 	DeviceAvailable                    = DeviceInfo(C.CL_DEVICE_AVAILABLE)
 	DeviceBuiltInKernels               = DeviceInfo(C.CL_DEVICE_BUILT_IN_KERNELS)
 	DeviceCompilerAvailable            = DeviceInfo(C.CL_DEVICE_COMPILER_AVAILABLE)
+	DeviceInfoType                     = DeviceInfo(C.CL_DEVICE_TYPE)
+	DeviceVendor                       = DeviceInfo(C.CL_DEVICE_VENDOR)
+	DriverVersion                      = DeviceInfo(C.CL_DRIVER_VERSION)
 )
 
 var (
@@ -38,6 +41,9 @@ var (
 		DeviceAvailable:         {false},
 		DeviceBuiltInKernels:    {"", []string{}},
 		DeviceCompilerAvailable: {false},
+		DeviceInfoType:          {DeviceTypeDefault},
+		DeviceVendor:            {""},
+		DriverVersion:           {"", MajorMinor{}},
 	}
 )
 
@@ -49,7 +55,13 @@ type Device struct {
 // getDevices returns a slice of devices of type deviceType for platform.
 func getDevices(platform Platform, deviceType DeviceType) ([]Device, error) {
 	var deviceCount C.cl_uint = C.cl_uint(0)
-	errInt := clError(C.clGetDeviceIDs(platform.platformID, C.cl_device_type(deviceType), 0, nil, &deviceCount))
+	errInt := clError(C.clGetDeviceIDs(
+		platform.platformID,
+		C.cl_device_type(deviceType),
+		0,
+		nil,
+		&deviceCount,
+	))
 	if errInt != clSuccess {
 		if errInt == clDeviceNotFound {
 			return []Device{}, nil
@@ -82,17 +94,19 @@ func getDevices(platform Platform, deviceType DeviceType) ([]Device, error) {
 
 // CreateContext creates and returns an OpenCL context for a device. After use the
 // context must be released.
-func (d Device) CreateContext() (*Context, error) {
+func (d Device) CreateContext() (Context, error) {
 	return createContext(d)
 }
 
 // GetInfo retrieves the information specified by name and stores it in output.
 // The output must correspond to the return type for that type of info:
 //
-// DeviceAddressBits *bool
-// DeviceAvailable *bool
-// DeviceBuiltInKernels *string or *[]string
+// DeviceAddressBits       *bool
+// DeviceAvailable         *bool
+// DeviceBuiltInKernels    *string or *[]string
 // DeviceCompilerAvailable *bool
+// DeviceInfoType          *DeviceType
+// DriverVersion           *string or *MajorMinor
 //
 // Note that if DeviceBuiltInKernels is retrieved with output being a *string,
 // the extensions will be a semicolon-separated list as specified by the OpenCL
@@ -136,8 +150,21 @@ func (d Device) GetInfo(name DeviceInfo, output interface{}) error {
 			*t = elems
 		}
 
-	case *uint32, *bool:
+	case *uint32, *bool, *DeviceType:
 		return d.getInfoNum(name, output)
+
+	case *MajorMinor:
+		if err := d.getInfoStr(name, &outputString); err != nil {
+			return err
+		}
+		if name == DriverVersion {
+			ver, err := ParseMajorMinor(outputString)
+			if err != nil {
+				return err
+			}
+
+			*t = ver
+		}
 	}
 
 	return nil
@@ -169,6 +196,17 @@ func (d Device) getInfoNum(name DeviceInfo, output interface{}) error {
 			nil,
 		))
 		*t = u == C.CL_TRUE
+
+	case *DeviceType:
+		var u C.cl_device_type
+		errInt = clError(C.clGetDeviceInfo(
+			d.deviceID,
+			C.cl_device_info(name),
+			C.sizeof_cl_device_type,
+			unsafe.Pointer(&u),
+			nil,
+		))
+		*t = DeviceType(u)
 
 	}
 
