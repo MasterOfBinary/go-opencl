@@ -1,10 +1,6 @@
 package opencl
 
-// #if __APPLE__
-//   #include <OpenCL/opencl.h>
-// #else
-//   #include <CL/cl.h>
-// #endif
+// #include "opencl.h"
 import "C"
 import (
 	"strings"

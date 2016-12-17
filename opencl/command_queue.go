@@ -1,15 +1,6 @@
 package opencl
 
-// TODO this is a cheat because my OpenCL DLL is too old to support
-// clCreateCommandQueueWithProperties but in the headers I'm using it's deprecated,
-// causing a Go error
-
-// #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-// #if __APPLE__
-//   #include <OpenCL/opencl.h>
-// #else
-//   #include <CL/cl.h>
-// #endif
+// #include "opencl.h"
 import "C"
 import (
 	"errors"
