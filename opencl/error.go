@@ -1,6 +1,5 @@
 package opencl
 
-// #cgo LDFLAGS: -lOpenCL
 // #include <CL/cl.h>
 import "C"
 import (

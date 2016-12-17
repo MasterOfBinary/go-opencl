@@ -4,7 +4,6 @@ package opencl
 // clCreateCommandQueueWithProperties but in the headers I'm using it's deprecated,
 // causing a Go error
 
-// #cgo LDFLAGS: -lOpenCL
 // #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 // #include <CL/cl.h>
 import "C"

@@ -1,6 +1,5 @@
 package opencl
 
-// #cgo LDFLAGS: -lOpenCL
 // #include <CL/cl.h>
 import "C"
 import (
@@ -29,10 +28,15 @@ type PlatformMajorMinor struct {
 	Minor uint8
 }
 
+// String converts a PlatformMajorMinor to a string in the format <major>.<minor>.
+func (p PlatformMajorMinor) String() string {
+	return strconv.FormatUint(uint64(p.Major), 10) + "." + strconv.FormatUint(uint64(p.Minor), 10)
+}
+
 // Platform is a structure for an OpenCL platform.
 type Platform struct {
 	platformID C.cl_platform_id
-	version    *PlatformMajorMinor
+	version    PlatformMajorMinor
 }
 
 // GetPlatforms returns a slice containing all platforms available.
@@ -55,9 +59,8 @@ func GetPlatforms() ([]*Platform, error) {
 			platformID: platformID,
 		}
 
-		ver, err := platforms[i].GetVersion()
-		if err == nil {
-			platforms[i].version = ver
+		if err := platforms[i].GetInfo(PlatformVersion, &platforms[i].version); err != nil {
+			return nil, err
 		}
 	}
 
@@ -147,16 +150,8 @@ func (p Platform) GetDevices(deviceType DeviceType) ([]Device, error) {
 }
 
 // GetVersion returns the platform OpenCL version.
-func (p *Platform) GetVersion() (*PlatformMajorMinor, error) {
-	var ver PlatformMajorMinor
-	err := p.GetInfo(PlatformVersion, &ver)
-	if err != nil {
-		return nil, err
-	}
-
-	p.version = &ver
-
-	return &ver, nil
+func (p Platform) GetVersion() PlatformMajorMinor {
+	return p.version
 }
 
 // parseVersion is a helper function to parse an OpenCL version. The version format
