@@ -7,9 +7,9 @@ go:
  - 1.5
 
 os:
- - osx
+  - osx
 
-before_install:
+install:
  - go get github.com/stretchr/testify/assert
 
 script:
