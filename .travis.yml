@@ -1,3 +1,4 @@
+os: osx
 language: go
 sudo: false
 
@@ -5,9 +6,6 @@ go:
  - 1.7.x
  - 1.6
  - 1.5
-
-os:
-  - osx
 
 install:
  - go get github.com/stretchr/testify/assert
