@@ -1,4 +1,6 @@
 # Go OpenCL
+[![Build Status](https://travis-ci.org/MasterOfBinary/go-opencl.svg?branch=master)](https://travis-ci.org/MasterOfBinary/go-opencl)
+
 This is a very simple OpenCL wrapper for Go. To download, use `go get github.com/MasterOfBinary/go-opencl`.
 
 You'll need an OpenCL 2.0 library. Download an SDK and copy its `libOpenCL.a` file to `opencl/external/lib`.

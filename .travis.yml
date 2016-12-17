@@ -9,10 +9,6 @@ go:
 os:
   - osx
 
-before_install:
-# - wget http://registrationcenter-download.intel.com/akdlm/irc_nas/9019/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz -O /tmp/opencl_runtime.tgz
-# - tar -xvf /tmp/opencl_runtime.tgz
-
 install:
  - go get github.com/stretchr/testify/assert
 
