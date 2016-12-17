@@ -6,15 +6,11 @@ go:
  - master
 
 before_install:
- - wget http://registrationcenter-download.intel.com/akdlm/irc_nas/9019/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz
- - tar -xvf opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz
- - git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader.git
+# - wget http://registrationcenter-download.intel.com/akdlm/irc_nas/9019/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz -O /tmp/opencl_runtime.tgz
+# - tar -xvf /tmp/opencl_runtime.tgz
 
 install:
  - go get github.com/stretchr/testify/assert
- - cd OpenCL-ICD-Loader
- - make
- - cd opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25
 
 script:
- - go test -v ./...
+# - go test -v ./...
