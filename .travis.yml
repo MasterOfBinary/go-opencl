@@ -14,3 +14,6 @@ before_install:
 
 script:
  - go test -v ./...
+
+notifications:
+  email: false
