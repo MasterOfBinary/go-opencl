@@ -16,6 +16,24 @@ func doMatrixMultiplication(device opencl.Device, dataSize int) {
 	}
 	defer commandQueue.Release()
 
+	var program opencl.Program
+	program, err = context.CreateProgramWithSourceFile("matmul.cl")
+	if err != nil {
+		panic(err)
+	}
+	defer program.Release()
+
+	kernel, err := program.CreateKernel("matmul")
+	if err != nil {
+		panic(err)
+	}
+	defer kernel.Release()
+
+	bufferA, err := context.CreateBuffer([]opencl.MemFlags{opencl.MemWriteOnly}, dataSize*4)
+	if err != nil {
+		panic(err)
+	}
+	defer bufferA.Release()
 }
 
 func ExampleMatrixMultiplication() {
