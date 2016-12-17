@@ -1,9 +1,14 @@
 language: go
+sudo: false
+
 go:
  - 1.7.x
  - 1.7
  - 1.6
  - master
+
+os:
+  - osx
 
 before_install:
 # - wget http://registrationcenter-download.intel.com/akdlm/irc_nas/9019/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz -O /tmp/opencl_runtime.tgz
@@ -13,4 +18,4 @@ install:
  - go get github.com/stretchr/testify/assert
 
 script:
-# - go test -v ./...
+ - go test -v ./...
