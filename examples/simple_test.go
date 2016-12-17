@@ -48,7 +48,7 @@ kernel void kern(global float* out)
 		panic("No device found")
 	}
 
-	var context *opencl.Context
+	var context opencl.Context
 	context, err = cpuDevice.CreateContext()
 	if err != nil {
 		panic(err)
@@ -56,7 +56,7 @@ kernel void kern(global float* out)
 	defer context.Release()
 
 	var commandQueue *opencl.CommandQueue
-	commandQueue, err = context.CreateCommandQueue()
+	commandQueue, err = context.CreateCommandQueue(*cpuDevice)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +70,7 @@ kernel void kern(global float* out)
 	defer program.Release()
 
 	var log string
-	err = program.Build(&log)
+	err = program.Build(*cpuDevice, &log)
 	if err != nil {
 		fmt.Println(log)
 		panic(err)
