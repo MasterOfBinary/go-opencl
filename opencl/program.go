@@ -11,7 +11,7 @@ type Program struct {
 	program C.cl_program
 }
 
-func createProgramWithSource(context Context, programCode string) (*Program, error) {
+func createProgramWithSource(context Context, programCode string) (Program, error) {
 	cs := C.CString(programCode)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -24,10 +24,10 @@ func createProgramWithSource(context Context, programCode string) (*Program, err
 		(*C.cl_int)(&errInt),
 	)
 	if errInt != clSuccess {
-		return nil, clErrorToError(errInt)
+		return Program{}, clErrorToError(errInt)
 	}
 
-	return &Program{program}, nil
+	return Program{program}, nil
 }
 
 func (p Program) Build(device Device, log *string) error {
@@ -70,6 +70,6 @@ func (p Program) Release() {
 	C.clReleaseProgram(p.program)
 }
 
-func (p *Program) CreateKernel(kernelName string) (*Kernel, error) {
+func (p Program) CreateKernel(kernelName string) (Kernel, error) {
 	return createKernel(p, kernelName)
 }

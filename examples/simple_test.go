@@ -19,50 +19,22 @@ kernel void kern(global float* out)
 `
 	)
 
-	platforms, err := opencl.GetPlatforms()
-	if err != nil {
-		panic(err)
-	}
+	var device = getFirstDevice(opencl.DeviceTypeAll)
 
-	var cpuDevice *opencl.Device
-
-	var name string
-	for _, platform := range platforms {
-		err = platform.GetInfo(opencl.PlatformName, &name)
-		if err != nil {
-			panic(err)
-		}
-		var devices []opencl.Device
-		devices, err = platform.GetDevices(opencl.DeviceTypeCPU)
-		if err != nil {
-			panic(err)
-		}
-
-		// Use the first device
-		if len(devices) > 0 && cpuDevice == nil {
-			cpuDevice = &devices[0]
-		}
-	}
-
-	if cpuDevice == nil {
-		panic("No device found")
-	}
-
-	var context opencl.Context
-	context, err = cpuDevice.CreateContext()
+	context, err := device.CreateContext()
 	if err != nil {
 		panic(err)
 	}
 	defer context.Release()
 
-	var commandQueue *opencl.CommandQueue
-	commandQueue, err = context.CreateCommandQueue(*cpuDevice)
+	var commandQueue opencl.CommandQueue
+	commandQueue, err = context.CreateCommandQueue(device)
 	if err != nil {
 		panic(err)
 	}
 	defer commandQueue.Release()
 
-	var program *opencl.Program
+	var program opencl.Program
 	program, err = context.CreateProgramWithSource(programCode)
 	if err != nil {
 		panic(err)
@@ -70,7 +42,7 @@ kernel void kern(global float* out)
 	defer program.Release()
 
 	var log string
-	err = program.Build(*cpuDevice, &log)
+	err = program.Build(device, &log)
 	if err != nil {
 		fmt.Println(log)
 		panic(err)
@@ -88,7 +60,7 @@ kernel void kern(global float* out)
 	}
 	defer buffer.Release()
 
-	err = kernel.SetArg(0, buffer.Size(), buffer)
+	err = kernel.SetArg(0, buffer.Size(), &buffer)
 	if err != nil {
 		panic(err)
 	}

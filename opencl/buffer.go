@@ -16,7 +16,7 @@ type Buffer struct {
 	buffer C.cl_mem
 }
 
-func createBuffer(context Context, flags []MemFlags, size uint64) (*Buffer, error) {
+func createBuffer(context Context, flags []MemFlags, size uint64) (Buffer, error) {
 	// AND together all flags
 	flagBitField := uint64(0)
 	for _, flag := range flags {
@@ -32,10 +32,10 @@ func createBuffer(context Context, flags []MemFlags, size uint64) (*Buffer, erro
 		(*C.cl_int)(&errInt),
 	)
 	if errInt != clSuccess {
-		return nil, clErrorToError(errInt)
+		return Buffer{}, clErrorToError(errInt)
 	}
 
-	return &Buffer{buffer}, nil
+	return Buffer{buffer}, nil
 }
 
 func (b Buffer) Size() uint64 {

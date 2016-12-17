@@ -9,11 +9,10 @@ import (
 )
 
 type Kernel struct {
-	program *Program
-	kernel  C.cl_kernel
+	kernel C.cl_kernel
 }
 
-func createKernel(program *Program, kernelName string) (*Kernel, error) {
+func createKernel(program Program, kernelName string) (Kernel, error) {
 	kn := C.CString(kernelName)
 	defer C.free(unsafe.Pointer(kn))
 
@@ -21,10 +20,10 @@ func createKernel(program *Program, kernelName string) (*Kernel, error) {
 	kernel := C.clCreateKernel(program.program, kn, (*C.cl_int)(&errInt))
 	if errInt != clSuccess {
 		fmt.Println("Error code", errInt)
-		return nil, clErrorToError(errInt)
+		return Kernel{}, clErrorToError(errInt)
 	}
 
-	return &Kernel{program, kernel}, nil
+	return Kernel{kernel}, nil
 }
 
 func (k Kernel) SetArg(argIndex uint32, argSize uint64, argValue interface{}) error {

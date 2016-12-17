@@ -102,14 +102,14 @@ func main() {
 	}
 	defer context.Release()
 
-	var commandQueue *opencl.CommandQueue
+	var commandQueue opencl.CommandQueue
 	commandQueue, err = context.CreateCommandQueue(device)
 	if err != nil {
 		panic(err)
 	}
 	defer commandQueue.Release()
 
-	var program *opencl.Program
+	var program opencl.Program
 	program, err = context.CreateProgramWithSource(programCode)
 	if err != nil {
 		panic(err)
@@ -135,7 +135,7 @@ func main() {
 	}
 	defer buffer.Release()
 
-	err = kernel.SetArg(0, buffer.Size(), buffer)
+	err = kernel.SetArg(0, buffer.Size(), &buffer)
 	if err != nil {
 		panic(err)
 	}

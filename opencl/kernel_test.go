@@ -30,6 +30,6 @@ func TestKernel(t *testing.T) {
 
 	buf, _ := ctx.CreateBuffer([]MemFlags{MemWriteOnly}, memSize)
 
-	err = kernel.SetArg(0, buf.Size(), buf)
+	err = kernel.SetArg(0, buf.Size(), &buf)
 	assert.Nil(t, err, "err")
 }
