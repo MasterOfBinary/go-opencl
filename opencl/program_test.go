@@ -10,13 +10,13 @@ func testBuildHelper(t *testing.T, programCode string, expectValid bool) {
 	p, _ := GetPlatforms()
 	d, _ := p[0].GetDevices(DeviceTypeAll)
 	ctx, _ := d[0].CreateContext()
-	_, _ = ctx.CreateCommandQueue()
+	_, _ = ctx.CreateCommandQueue(d)
 
 	program, err := ctx.CreateProgramWithSource(programCode)
 	assert.Nil(t, err)
 
 	var log string
-	err = program.Build(&log)
+	err = program.Build(d, &log)
 
 	if expectValid {
 		assert.Nil(t, err, "err")
