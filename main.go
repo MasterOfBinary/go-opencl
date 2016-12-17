@@ -34,14 +34,14 @@ func main() {
 		}
 
 		var devices []opencl.Device
-		devices, err = platform.GetDevices(opencl.DeviceTypeCPU)
+		devices, err = platform.GetDevices(opencl.DeviceTypeAll)
 		if err != nil {
 			panic(err)
 		}
 
 		version := platform.GetVersion()
 
-		fmt.Printf("Platform name: %v, number of CPU devices: %v, version: %v\n", name, len(devices), version)
+		fmt.Printf("Platform name: %v, number of devices: %v, version: %v\n", name, len(devices), version)
 
 		// Use the first device
 		if len(devices) > 0 && cpuDevice == nil {
