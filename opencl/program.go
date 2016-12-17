@@ -3,6 +3,7 @@ package opencl
 // #include "opencl.h"
 import "C"
 import (
+	"io/ioutil"
 	"strings"
 	"unsafe"
 )
@@ -28,6 +29,14 @@ func createProgramWithSource(context Context, programCode string) (Program, erro
 	}
 
 	return Program{program}, nil
+}
+
+func createProgramWithSourceFile(context Context, filename string) (Program, error) {
+	source, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return createProgramWithSource(context, string(source))
 }
 
 func (p Program) Build(device Device, log *string) error {

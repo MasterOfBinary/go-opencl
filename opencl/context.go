@@ -35,6 +35,10 @@ func (c Context) CreateProgramWithSource(programCode string) (Program, error) {
 	return createProgramWithSource(c, programCode)
 }
 
+func (c Context) CreateProgramWithSourceFile(filename string) (Program, error) {
+	return createProgramWithSourceFile(c, filename)
+}
+
 func (c Context) CreateBuffer(memFlags []MemFlags, size uint64) (Buffer, error) {
 	return createBuffer(c, memFlags, size)
 }
