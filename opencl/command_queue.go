@@ -50,6 +50,9 @@ func (c CommandQueue) EnqueueReadBuffer(buffer Buffer, blockingRead bool, dataPt
 	case []float32:
 		dataLen = uint64(len(p) * 4)
 		ptr = unsafe.Pointer(&p[0])
+	case []byte:
+		dataLen = uint64(len(p))
+		ptr = unsafe.Pointer(&p[0])
 	default:
 		return errors.New("Unexpected type for dataPtr")
 	}
