@@ -14,10 +14,10 @@ const (
 	dataSize = 128
 
 	programCode = `
-kernel void kern(global float* out)
+kernel void kern(global float* out, global float* a, global float* b)
 {
 	size_t i = get_global_id(0);
-	out[i] = i;
+	out[i] = a[i] + b[i];
 }
 `
 )
@@ -135,10 +135,46 @@ func main() {
 	}
 	defer buffer.Release()
 
+
+    buffer1, err := context.CreateBuffer([]opencl.MemFlags{opencl.MemReadOnly}, dataSize*4)
+    if err != nil {
+        panic(err)
+    }
+    defer buffer1.Release()
+
+    buffer2, err := context.CreateBuffer([]opencl.MemFlags{opencl.MemReadOnly}, dataSize*4)
+    if err != nil {
+        panic(err)
+    }
+    defer buffer2.Release()
+
 	err = kernel.SetArg(0, buffer.Size(), &buffer)
 	if err != nil {
 		panic(err)
 	}
+
+    err = kernel.SetArg(1, buffer1.Size(), &buffer1)
+    if err != nil {
+        panic(err)
+    }
+
+    err = kernel.SetArg(2, buffer2.Size(), &buffer2)
+    if err != nil {
+        panic(err)
+    }
+
+    write_data := make([]float32, dataSize)
+    for i := 0; i < dataSize; i++ {
+        write_data[i] = float32(i)
+    }
+    err = commandQueue.EnqueueWriteBuffer(buffer1, true, write_data)
+    if err != nil {
+        panic(err)
+    }
+    err = commandQueue.EnqueueWriteBuffer(buffer2, true, write_data)
+    if err != nil {
+        panic(err)
+    }
 
 	err = commandQueue.EnqueueNDRangeKernel(kernel, 1, []uint64{dataSize})
 	if err != nil {
